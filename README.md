@@ -1,4 +1,3 @@
-# Exploration-Coin
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.7.0) (token/ERC20/ERC20.sol)
 
@@ -609,8 +608,8 @@ contract ExplorationCoin is ERC20Burnable {
         uint256 WABA;
         uint256 ABA;
         uint256 F;
-        uint addTime; // 加入时间
-        uint updateTime; // 参数更新时间
+        uint addTime; 
+        uint updateTime; 
     }
     mapping(address => MinerInfo) _minerInfo;
     uint256 _N;
@@ -620,8 +619,8 @@ contract ExplorationCoin is ERC20Burnable {
     uint256 _firstWeekPerSecondMintAmount;
     uint public _reduceRatePerWeek; 
     uint public _miningStartTime;
-    uint256 public _maxMiningAmount; // 总共能挖的数量
-    uint256 public _alreadyMintAmount; // 被矿工挖出的数量
+    uint256 public _maxMiningAmount; 
+    uint256 public _alreadyMintAmount; 
 
     /**
      * @dev Mints `initialSupply` amount of token and transfers them to `owner`.
@@ -632,24 +631,24 @@ contract ExplorationCoin is ERC20Burnable {
         string memory name,
         string memory symbol
     ) ERC20(name, symbol) {
-        // 总发行量将会是1万亿
-        // 基金 17%
+        // The total circulation 1 trillion
+        // fund 17%
         _mint(address(0xAbc1c1b9439d369eC1b0ee1139457665eB3fcA74), 17000000000000 
 *10**decimals());
-        // 国库30%
+        // treasury 30%
         _mint(address(0xD24d951F5b3185f5EaD17A9b51058C741bCc9e51), 30000000000000 
 *10**decimals());
-        // 剩余54%，由矿工挖出
+        // remaining 54%，mined by miners
         _maxMiningAmount = 54000000000000*10**decimals();
-        // 第一周挖
+        // Minable in the first week
         _firstWeekMintAmount = 3000000000*10**decimals();
         _firstWeekPerSecondMintAmount = _firstWeekMintAmount/ONE_WEEK_SECOND;
-        _miningStartTime = 9999999999; // 设置成2286年才开始挖，其实就是默认不启动挖矿
-        _reduceRatePerWeek = 5; // 每周减产比例
+        _miningStartTime = 9999999999; 
+        _reduceRatePerWeek = 5; // Weekly reduction ratio
     }
 
     /**
-    * @dev 设置开始挖矿的时间，一旦合约已经开始挖矿，就不能修改了
+    * @dev Set the time to start mining, once the contract has started mining, it cannot be modified
     */
     function setMiningStartTime(uint startTimestamp) public onlyOwner{
         require(_miningStartTime == 9999999999, "EXO: cann't set start time, mining has started");
@@ -658,7 +657,7 @@ contract ExplorationCoin is ERC20Burnable {
     }
 
     /**
-    * @dev 查询第一周挖的数量
+    * @dev Query the quantity mined in the first week
     */
     function getFirstWeekMintAmount() public view returns(uint256){
         return _firstWeekMintAmount;
@@ -670,18 +669,18 @@ contract ExplorationCoin is ERC20Burnable {
 
     
     /**
-    * @dev 查询第一周每秒挖的数量
+    * @dev Query the number of mined per second for the first week
     */
     function getFirstWeekPerSecondMintAmount() public view returns(uint256){
         return _firstWeekPerSecondMintAmount;
     }
 
     /**
-    * @dev 查询当前时间是开始挖矿后的第几周，从1开始算
+    * @dev 
     */
     function getWeekNumber(uint utcTime) public view returns(uint256){
         if(utcTime == 0){
-            // 0是特殊值，就查当前时间
+            // 0
             return (block.timestamp - _miningStartTime)/ONE_WEEK_SECOND + 1;
         }else if(utcTime <= _miningStartTime) {
             return 0;
@@ -692,41 +691,41 @@ contract ExplorationCoin is ERC20Burnable {
     }
 
     /**
-    * @dev 查询第weekNumber周，可以挖到的数量
+    * @dev Query weekNumber week, the amount that can be mined
     */
     function getWeekNumberMintAmount(uint weekNumber) public view returns(uint256){
        uint i;
        uint256 mintAmout = _firstWeekMintAmount;
        for(i=1;i<weekNumber;i++){
-           // 每过一周每秒能挖的EXO就减产5%，也就是变成原来的95%;
+           
            mintAmout = mintAmout*(100-_reduceRatePerWeek)/100;
        }
        return mintAmout;
     }
     
     /**
-    * @dev 查询某个时刻的每秒挖矿个数
+    * @dev Query the number of mining per second at a certain moment
     */
     function getPerSecondMintAmount(uint utcTime) public view returns(uint256){
        uint weekNumber = getWeekNumber(utcTime);
        uint i;
        uint256 persecondMintAmout = _firstWeekPerSecondMintAmount;
        for(i=1;i<weekNumber;i++){
-           // 每过一周每秒能挖的EXO就减产5%，也就是变成原来的95%;
+           
            persecondMintAmout = persecondMintAmout *(100-_reduceRatePerWeek)/100;
        }
        return persecondMintAmout;
     }
 
     /**
-    * @dev 获取某个时刻已经挖出的币的个数
+    * @dev Get the number of coins that have been mined at a certain time
     */
     function getTotalMintToken(uint endTime) public view returns (uint){
        uint weekNumber = getWeekNumber(endTime);
        uint i;
        uint256 mintAmount = 0;
        for(i=1;i<weekNumber;i++){
-           // 每过一周每秒能挖的EXO就减产5%，也就是变成原来的95%;
+           
            mintAmount += getWeekNumberMintAmount(i);
        }
        uint utcTime = endTime;
@@ -742,20 +741,20 @@ contract ExplorationCoin is ERC20Burnable {
         return contractMintToken * getMinerWeightMolecule(account)/getMinerWeightDenominator();
     }
 
-    // 权重分子
+    // weight numerator
     function getMinerWeightMolecule(address account) public view returns(uint256){
         MinerInfo storage minerInfo = _minerInfo[account];
-        // 原始公式 _N * minerInfo.WAEL * ((minerInfo.WABA+minerInfo.ABA)**_cybermine) * _alpha * minerInfo.F /(1000000*100**_cybermine);
+        // original formula _N * minerInfo.WAEL * ((minerInfo.WABA+minerInfo.ABA)**_cybermine) * _alpha * minerInfo.F /(1000000*100**_cybermine);
         return _N * minerInfo.WAEL * ((minerInfo.WABA+minerInfo.ABA)**_cybermine) * _alpha * minerInfo.F;
     }
 
-    // 权重分母
+    // Weight denominator
     function getMinerWeightDenominator() public view returns(uint256){        
         return 1000000*100**_cybermine;
     }
 
     /**
-    * @dev 增加新矿工
+    * @dev Add new miners
     */
     function addMinerInfo(address minerAddress, uint256 WAEL, uint256 WABA, uint256 ABA, uint256 F) public onlyOwner{
         require(_minerInfo[minerAddress].addTime == 0, "EXO: miner was add before");
@@ -769,15 +768,15 @@ contract ExplorationCoin is ERC20Burnable {
     } 
     
     /**
-    * @dev 更新矿工信息
+    * @dev Update miner information
     */
     function updateMinerInfo(address minerAddress, uint256 WAEL, uint256 WABA, uint256 ABA, uint256 F) public onlyOwner{
         require(_minerInfo[minerAddress].addTime > 0, "EXO: miner not exist");
         MinerInfo storage minerInfo = _minerInfo[minerAddress];
         uint256 mintAmount = (getTotalMintToken(0) - getTotalMintToken(minerInfo.updateTime)) * getMinerWeightMolecule(minerAddress)/getMinerWeightDenominator();
         if(_alreadyMintAmount < _maxMiningAmount){
-            // 已挖矿数量必须小于当前可挖总量，否则就是超发
-            _mint(minerAddress, mintAmount); // 把参数更新前已挖出的代币，mint到用户手中，再更新参数
+            // The mined amount must be less than the current total amount that can be mined
+            _mint(minerAddress, mintAmount); 
             _alreadyMintAmount += mintAmount;
         }
         _minerInfo[minerAddress].WAEL = WAEL; 
@@ -793,11 +792,11 @@ contract ExplorationCoin is ERC20Burnable {
         MinerInfo storage minerInfo = _minerInfo[minerAddress];
         uint256 mintAmount = (getTotalMintToken(0) - getTotalMintToken(minerInfo.updateTime)) * getMinerWeightMolecule(minerAddress)/getMinerWeightDenominator();
         if(_alreadyMintAmount < _maxMiningAmount){
-            // 已挖矿数量必须小于当前可挖总量，否则就是超发
-            _mint(minerAddress, mintAmount); // 到目前为止挖到的币，mint到用户账户里
+            // The mined amount must be less than the current total amount that can be mined
+            _mint(minerAddress, mintAmount); 
             _alreadyMintAmount += mintAmount;
         }
-        _minerInfo[minerAddress].updateTime = block.timestamp; // 更新重新计算挖矿的开始时间
+        _minerInfo[minerAddress].updateTime = block.timestamp; // Update the start time for recalculation of mining
     }
 
     function balanceOf(address account) public view virtual override returns (uint256) {
@@ -830,21 +829,21 @@ contract ExplorationCoin is ERC20Burnable {
 
     
     /**
-    * @dev 获取矿工属性信息
+    * @dev Get miner attribute information
     */
     function getMinerInfo(address minerAddress) public view returns (MinerInfo memory){
         return _minerInfo[minerAddress];
     }
 
     /**
-    * @dev 获取所有矿工地址列表
+    * @dev Get a list of all miner addresses
     */
     function getMinerAddressList() public view returns (address[] memory){
         return _minerList;
     }    
     
     /**
-    * @dev 获取矿工个数
+    * @dev Get the number of miners
     */
     function getMinerCount() public view returns (uint){
         return _minerList.length;
